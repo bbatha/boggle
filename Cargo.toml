@@ -1,0 +1,7 @@
+[package]
+name = "boggle"
+version = "0.1.0"
+authors = ["Ben Batha <bhbatha@gmail.com>"]
+
+[dependencies]
+bit-vec = "^0.4"
