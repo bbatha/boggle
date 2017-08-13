@@ -1,10 +1,7 @@
 use std::ascii::AsciiExt;
-use std::collections::BTreeSet;
 use std::fmt;
-use std::iter::{Iterator, IntoIterator};
+use std::iter::{self, Iterator};
 use std::ops::Index;
-
-use bit_vec::BitVec;
 
 use error::Error;
 
@@ -71,9 +68,8 @@ impl Board {
         }
     }
 
-    fn has_word(&self, word: &[u8]) -> bool {
-        let mut visited = Visited::new(word.len(), self.len());
-
+    fn has_word(&self, visited: &mut Visited, word: &[u8]) -> bool {
+        visited.reset(word.len(), self.len());
         for (k, b) in word.iter().cloned().enumerate() {
             for i in 0..self.len() {
                 for j in 0..self.len() {
@@ -101,13 +97,13 @@ impl Board {
         false
     }
 
-    pub fn solve<'a, I: IntoIterator<Item=&'a str>>(&self, dictionary: I) -> usize {
-        let words = dictionary.into_iter();
-        let words: BTreeSet<_> = words.collect();
-        words.iter().filter(|&w| {
-            assert!(w.is_ascii(), format!("{:?}", w));
-            self.has_word(w.as_bytes())
-        }).count()
+    pub fn solve<R: AsRef<str>>(&self, words: R) -> usize {
+        let mut visited = Visited::new();
+
+        words.as_ref()
+            .lines()
+            .filter(|&w| w.len() > 3 && self.has_word(&mut visited, w.as_bytes()))
+            .count()
     }
 
     pub fn get(&self, (x, y): (isize, isize)) -> Option<&u8> {
@@ -131,15 +127,17 @@ impl Index<(isize, isize)> for Board {
 struct Visited {
     word_len: usize,
     width: usize,
-    visited: BitVec<u32>,
+    visited: Vec<bool>,
 }
 
 impl Visited {
-    fn new(word_len: usize, width: usize) -> Visited{
+    fn new() -> Visited{
         Visited {
-            word_len,
-            width,
-            visited: BitVec::from_elem(word_len * width * width, false),
+            word_len: 0,
+            width: 0,
+            // 16 (longest word in included corpus) * 6 (width) * 6 (width) = 576
+            // round up to the nearest power of two and bob's your uncle
+            visited: Vec::with_capacity(1024),
         }
     }
 
@@ -153,7 +151,22 @@ impl Visited {
 
     fn visit(&mut self, idx: (usize, usize, usize)) {
         let idx = self.idx(idx).expect("index out of bounds");
-        self.visited.set(idx, true)
+        self.visited[idx] = true;
+    }
+
+    fn reset(&mut self, word_len: usize, width: usize) {
+        self.word_len = word_len;
+        self.width = width;
+        let new_len = word_len * width * width;
+        let old_len = self.visited.len();
+
+        if new_len > old_len {
+            self.visited.reserve(new_len - old_len);
+        }
+        self.visited.truncate(0);
+        // this would be faster if we had safe fill on stable rust
+        // or llvm did a better job of using memset
+        self.visited.extend(iter::repeat(false).take(new_len));
     }
 }
 
@@ -188,7 +201,7 @@ struct Neighbors<'a> {
     x: isize,
     y: isize,
     current: usize,
-    board: &'a Board
+    board: &'a Board,
 }
 
 impl<'a> Iterator for Neighbors<'a> {
@@ -256,19 +269,22 @@ mod test {
     #[test]
     fn has_word() {
         let board = Board::parse(BOARD).unwrap();
-        assert!(board.has_word(b"abcd"));
-        assert!(board.has_word(b"dcba"));
-        assert!(board.has_word(b"afkp"));
-        assert!(board.has_word(b"pkfa"));
-        assert!(board.has_word(b"mjgd"));
-        assert!(board.has_word(b"dgjm"));
-        assert!(board.has_word(b"aeim"));
-        assert!(board.has_word(b"miea"));
-        assert!(board.has_word(b"aefb"));
-        assert!(board.has_word(b"bfea"));
+        fn has_word(board: &Board, word: &[u8]) -> bool {
+            board.has_word(&mut Visited::new(), word)
+        };
+        assert!(has_word(&board, b"abcd"));
+        assert!(has_word(&board, b"dcba"));
+        assert!(has_word(&board, b"afkp"));
+        assert!(has_word(&board, b"pkfa"));
+        assert!(has_word(&board, b"mjgd"));
+        assert!(has_word(&board, b"dgjm"));
+        assert!(has_word(&board, b"aeim"));
+        assert!(has_word(&board, b"miea"));
+        assert!(has_word(&board, b"aefb"));
+        assert!(has_word(&board, b"bfea"));
 
-        assert!(!board.has_word(b"lies"));
-        assert!(!board.has_word(b"mapb"));
+        assert!(!has_word(&board, b"lies"));
+        assert!(!has_word(&board, b"mapb"));
     }
 }
 
@@ -284,8 +300,7 @@ mod bench {
     fn bench_dynamic_programming(b: &mut Bencher) {
         let board = Board::parse(BOARD1).unwrap();
         b.iter(|| {
-            let dictionary = DICTIONARY.lines().filter(|l| l.len() > 3);
-            board.solve(dictionary);
+            board.solve(DICTIONARY);
         });
     }
 }

@@ -4,4 +4,7 @@ version = "0.1.0"
 authors = ["Ben Batha <bhbatha@gmail.com>"]
 
 [dependencies]
-bit-vec = "^0.4"
+smallvec = "^0.4"
+
+[features]
+unstable = []

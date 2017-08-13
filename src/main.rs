@@ -34,15 +34,14 @@ fn boggle_main() -> Result<usize, Error> {
     };
 
     let board = Board::parse(&raw_board)?;
-    let dictionary = raw_dict.lines().filter(|l| l.len() > 3);
-    Ok(board.solve(dictionary))
+    Ok(board.solve(raw_dict))
 }
 
 fn main() {
     match boggle_main() {
         Ok(s) => println!("Found {} matches!", s),
         Err(err) => {
-            println!("{}", err);
+            eprintln!("{}", err);
             std::process::exit(1);
         }
     }

@@ -2,13 +2,13 @@
 name = "boggle"
 version = "0.1.0"
 dependencies = [
- "bit-vec 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "smallvec 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "bit-vec"
-version = "0.4.4"
+name = "smallvec"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [metadata]
-"checksum bit-vec 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)" = "02b4ff8b16e6076c3e14220b39fbc1fabb6737522281a388998046859400895f"
+"checksum smallvec 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "b5864faef64ccadecaafebd8d57ae1b27ce8190c8c491d4a284400bb6fa639ae"
