@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Ben Batha <bhbatha@gmail.com>"]
 
 [dependencies]
-smallvec = "^0.4"
+rayon = "^0.8"
 
 [features]
 unstable = []

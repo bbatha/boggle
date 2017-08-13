@@ -3,6 +3,8 @@ use std::fmt;
 use std::iter::{self, Iterator};
 use std::ops::Index;
 
+use rayon::prelude::*;
+
 use error::Error;
 
 const DIRECTIONS: [(isize, isize); 8] = [
@@ -97,12 +99,19 @@ impl Board {
         false
     }
 
-    pub fn solve<R: AsRef<str>>(&self, words: R) -> usize {
+    pub fn solve_single_threaded<R: AsRef<str>>(&self, words: R) -> usize {
         let mut visited = Visited::new();
 
         words.as_ref()
             .lines()
             .filter(|&w| w.len() > 3 && self.has_word(&mut visited, w.as_bytes()))
+            .count()
+    }
+
+    pub fn solve_rayon<R: AsRef<str>>(&self, words: R) -> usize {
+        words.as_ref()
+            .par_lines()
+            .filter(|&w| w.len() > 3 && self.has_word(&mut Visited::new(), w.as_bytes()))
             .count()
     }
 
@@ -297,10 +306,18 @@ mod bench {
     const BOARD1: &str = include_str!("../test/board1");
 
     #[bench]
-    fn bench_dynamic_programming(b: &mut Bencher) {
+    fn bench_single_threaded(b: &mut Bencher) {
         let board = Board::parse(BOARD1).unwrap();
         b.iter(|| {
-            board.solve(DICTIONARY);
+            board.solve_single_threaded(DICTIONARY);
+        });
+    }
+
+    #[bench]
+    fn bench_rayon(b: &mut Bencher) {
+        let board = Board::parse(BOARD1).unwrap();
+        b.iter(|| {
+            board.solve_rayon(DICTIONARY);
         });
     }
 }

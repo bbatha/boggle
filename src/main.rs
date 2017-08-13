@@ -1,5 +1,6 @@
 #![cfg_attr(feature = "unstable", feature(test))]
 
+extern crate rayon;
 #[cfg(feature = "unstable")]
 extern crate test;
 
@@ -34,7 +35,7 @@ fn boggle_main() -> Result<usize, Error> {
     };
 
     let board = Board::parse(&raw_board)?;
-    Ok(board.solve(raw_dict))
+    Ok(board.solve_rayon(raw_dict))
 }
 
 fn main() {
