@@ -215,11 +215,7 @@ impl<'a> Iterator for Neighbors<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use test::Bencher;
-
-    const DICTIONARY: &str = include_str!("../test/dictionary");
     const BOARD: &str = "abcd\nefgh\nijkl\nmnop";
-    const BOARD1: &str = include_str!("../test/board1");
 
     #[test]
     fn parse() {
@@ -274,6 +270,15 @@ mod test {
         assert!(!board.has_word(b"lies"));
         assert!(!board.has_word(b"mapb"));
     }
+}
+
+#[cfg(all(feature = "unstable", test))]
+mod bench {
+    use super::*;
+    use test::Bencher;
+
+    const DICTIONARY: &str = include_str!("../test/dictionary");
+    const BOARD1: &str = include_str!("../test/board1");
 
     #[bench]
     fn bench_dynamic_programming(b: &mut Bencher) {

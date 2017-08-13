@@ -1,6 +1,6 @@
-#![feature(test)]
+#![cfg_attr(feature = "unstable", feature(test))]
 
-extern crate bit_vec;
+#[cfg(feature = "unstable")]
 extern crate test;
 
 mod board;
