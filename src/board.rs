@@ -18,47 +18,33 @@ const DIRECTIONS: [(isize, isize); 8] = [
     (1, -1),
 ];
 
-pub struct Board {
-    len: usize,
-    board: Vec<u8>,
+pub struct Board<'a> {
+    board: Vec<&'a [u8]>,
 }
 
-impl fmt::Debug for Board {
+impl<'a> fmt::Debug for Board<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Board:\t")?; 
         for i in 0..self.len() {
-            for j in 0..self.len() {
-                let idx = self.len() * i + j;
-                write!(f, "{:?}", self.board[idx] as char)?;
-            }
-            write!(f, "\n\t")?;
+            write!(f, "\n\t{:?}", ::std::str::from_utf8(self.board[i]).unwrap())?;
         }
         Ok(())
     }
 }
 
-impl Board {
+impl<'a> Board<'a> {
     pub fn parse(raw: &str) -> Result<Board, Error> {
-        assert!(raw.is_ascii());
-
-        let len = raw.lines().count();
-        if len < 3 {
-            return Err(Error::BoardSize("board must be at least 3 x 3"))
-        }
-        let mut board = Vec::with_capacity(len * len);
-
-        for line in raw.lines() {
-            if line.as_bytes().len() != len {
-                return Err(Error::BoardSize("row sizes are not equal"));
-            }
-            board.extend(line.as_bytes());
+        debug_assert!(raw.is_ascii());
+        let board: Vec<_> = raw.lines().map(|l| l.as_bytes()).collect();
+        if board.iter().any(|l| l.len() != board.len()) {
+            return Err(Error::BoardSize("unequal row and column sizes"));
         }
 
-        Ok(Board { len, board })
+        Ok(Board { board })
     }
 
     pub fn len(&self) -> usize {
-        self.len
+        self.board.len()
     }
 
     fn neighbors(&self, (x, y): (usize, usize)) -> Neighbors {
@@ -115,17 +101,52 @@ impl Board {
             .count()
     }
 
+    pub fn solve_trie<R: AsRef<str>>(&self, words: R) -> usize {
+        let mut visited = Visited::new();
+        let arena = Arena::new();
+        let trie = TrieNode::root(&arena);
+
+        for word in words.as_ref().lines() {
+            trie.insert(word.as_bytes(), &arena);
+        }
+
+        let mut count = 0;
+        let mut words_searched = 0;
+        let mut to_search = Vec::with_capacity(1024);
+        to_search.push(trie);
+
+        while let Some(next) = to_search.pop() {
+            if next.word_end && next.word.len() > 3 {
+                words_searched +=1;
+                if self.has_word(&mut visited, next.word) {
+                    count +=1;
+                } else {
+                    continue;
+                }
+            }
+
+            for root in next.roots.iter() {
+                let r = root.take();
+                if let Some(r) = r {
+                    to_search.push(r);
+                }
+                root.set(r);
+            }
+        }
+        println!("trie words searched: {}", words_searched);
+        count
+    }
+
     pub fn get(&self, (x, y): (isize, isize)) -> Option<&u8> {
         if x.is_negative() || x >= self.len() as isize || y.is_negative() || y >= self.len() as isize {
             None
         } else {
-            let idx = self.len() as isize * x + y;
-            self.board.get(idx as usize)
+            self.board.get(x as usize).and_then(|r| r.get(y as usize))
         }
     }
 }
 
-impl Index<(isize, isize)> for Board {
+impl<'a> Index<(isize, isize)> for Board<'a> {
     type Output = u8;
 
     fn index(&self, idx: (isize, isize)) -> &u8 {
@@ -206,14 +227,14 @@ impl fmt::Debug for Visited {
 }
 
 #[derive(Debug)]
-struct Neighbors<'a> {
+struct Neighbors<'a, 'b: 'a> {
     x: isize,
     y: isize,
     current: usize,
-    board: &'a Board,
+    board: &'a Board<'b>,
 }
 
-impl<'a> Iterator for Neighbors<'a> {
+impl<'a, 'b> Iterator for Neighbors<'a, 'b> {
     type Item = (usize, usize);
 
     fn next(&mut self) -> Option<Self::Item> {
