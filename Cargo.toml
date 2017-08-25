@@ -5,6 +5,8 @@ authors = ["Ben Batha <bhbatha@gmail.com>"]
 
 [dependencies]
 rayon = "^0.8"
+typed-arena = "^1.2"
+smallvec = "^0.4"
 
 [features]
 unstable = []

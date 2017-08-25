@@ -1,11 +1,14 @@
 #![cfg_attr(feature = "unstable", feature(test))]
 
-extern crate rayon;
 #[cfg(feature = "unstable")]
 extern crate test;
+extern crate typed_arena;
+extern crate smallvec;
 
 mod board;
 mod error;
+mod trie;
+mod multivec;
 
 use std::fs::File;
 use std::io::Read;
@@ -20,7 +23,7 @@ fn read(path: &str) -> Result<String, Error> {
     Ok(buf)
 }
 
-fn boggle_main() -> Result<usize, Error> {
+fn boggle_main() -> Result<(), Error> {
     let mut args = std::env::args();
     args.next().ok_or(Error::Usage)?;
 
@@ -35,15 +38,17 @@ fn boggle_main() -> Result<usize, Error> {
     };
 
     let board = Board::parse(&raw_board)?;
-    Ok(board.solve_rayon(raw_dict))
+    let solutions = board.solve_single_threaded(&raw_dict);
+    println!("Found {} words in board", solutions.len());
+    Ok(())
 }
 
 fn main() {
     match boggle_main() {
-        Ok(s) => println!("Found {} matches!", s),
         Err(err) => {
             eprintln!("{}", err);
             std::process::exit(1);
-        }
+        },
+        _ => ()
     }
 }
