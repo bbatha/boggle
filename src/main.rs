@@ -38,7 +38,7 @@ fn boggle_main() -> Result<(), Error> {
     };
 
     let board = Board::parse(&raw_board)?;
-    let solutions = board.solve_single_threaded(&raw_dict);
+    let solutions = board.solve_trie(&raw_dict);
     println!("Found {} words in board", solutions.len());
     Ok(())
 }

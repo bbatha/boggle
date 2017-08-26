@@ -10,3 +10,6 @@ smallvec = "^0.4"
 
 [features]
 unstable = []
+
+[profile.bench]
+debug = true

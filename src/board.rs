@@ -110,14 +110,15 @@ impl<'word> Board<'word> {
         }
 
         let mut solutions = Vec::new();
+        let mut stack = Vec::with_capacity(4098);
         for word in words.lines() {
             if word.as_bytes().len() < 3 || !self.contains_letters(word.as_bytes()) || !self.has_word(word.as_bytes()) {
                 continue;
             }
 
+            stack.truncate(0);
             'found: for i in 0..self.len() {
                 for j in 0..self.len() {
-                    let mut stack = Vec::new();
                     let visited = Vec2::fill(self.len(), self.len(), false);
                     stack.push(DfsItem { x: i, y: j, visited, word: &word[0..1] });
 
@@ -163,10 +164,11 @@ impl<'word> Board<'word> {
             trie: &'trie TrieNode<'trie, 'word>,
         }
 
+        let mut stack = Vec::with_capacity(4098);
         let mut solutions = Vec::new();
         for i in 0..self.len() {
             for j in 0..self.len() {
-                let mut stack = Vec::new();
+                stack.truncate(0);
                 let visited = Vec2::fill(self.len(), self.len(), false);
                 stack.push(DfsItem { x: i, y: j, trie, visited });
 
