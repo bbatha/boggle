@@ -5,9 +5,9 @@ authors = ["Ben Batha <bhbatha@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-rayon = "^0.8"
+rayon = "^1.1"
 typed-arena = "^1.2"
-smallvec = "^0.4"
+smallvec = "^0.6"
 
 [features]
 unstable = []
