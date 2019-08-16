@@ -2,8 +2,6 @@
 
 #[cfg(feature = "unstable")]
 extern crate test;
-extern crate typed_arena;
-extern crate smallvec;
 
 mod board;
 mod error;

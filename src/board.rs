@@ -1,4 +1,3 @@
-use std::ascii::AsciiExt;
 use std::fmt;
 use std::iter::Iterator;
 use std::ops::Index;
@@ -6,9 +5,9 @@ use std::str;
 
 use typed_arena::Arena;
 
-use error::Error;
-use trie::TrieNode;
-use multivec::{Vec2, Vec3};
+use crate::error::Error;
+use crate::trie::TrieNode;
+use crate::multivec::{Vec2, Vec3};
 
 pub struct Board<'word> {
     board: Vec<&'word [u8]>,
@@ -17,7 +16,7 @@ pub struct Board<'word> {
 
 impl<'word> fmt::Debug for Board<'word> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Board:\t")?; 
+        write!(f, "Board:\t")?;
         for row in self.board.iter() {
             write!(f, "\n\t{:?}", str::from_utf8(row).expect("board is ascii"))?
         }
@@ -238,7 +237,7 @@ impl<'board, 'word> Iterator for Neighbors<'board, 'word> {
                 return Some((x as usize, y as usize))
             }
         }
-        
+
         None
     }
 }
@@ -320,8 +319,8 @@ mod test {
 
 #[cfg(all(feature = "unstable", test))]
 mod bench {
+    use ::test::Bencher;
     use super::*;
-    use test::Bencher;
 
     const DICTIONARY: &str = include_str!("../test/dictionary");
     const BOARD1: &str = include_str!("../test/board1");

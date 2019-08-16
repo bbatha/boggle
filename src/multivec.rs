@@ -24,7 +24,7 @@ impl<T> Vec3<T> {
     pub fn fill(width: usize, height: usize, depth: usize, value: T) -> Vec3<T>
         where T: Clone
     {
-        let data = iter::repeat(value).take(width * height * depth).collect(); 
+        let data = iter::repeat(value).take(width * height * depth).collect();
         Vec3 {
             width,
             height,
@@ -51,13 +51,12 @@ impl<T> IndexMut<(usize, usize, usize)> for Vec3<T> {
 
 impl<T: Debug> Debug for Vec3<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Vec3:\t")?; 
+        write!(f, "Vec3:\t")?;
         for i in 0..self.width {
             write!(f, "{:?}:\t", i)?;
             for j in 0..self.height {
                 for k in 0..self.depth {
-                    let idx = self.idx((i, j, k)).unwrap();
-                    write!(f, "{:?}, ", self.data[idx])?;
+                    write!(f, "{:?}, ", self[(i,j,k)])?;
                 }
                 write!(f, "\n\t\t")?;
             }
@@ -113,12 +112,11 @@ impl<T> IndexMut<(usize, usize)> for Vec2<T> {
 
 impl<T: Debug> Debug for Vec2<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Vec3:\t")?; 
+        write!(f, "Vec3:\t")?;
         for i in 0..self.width {
             write!(f, "{:?}:\t", i)?;
             for j in 0..self.height {
-                let idx = self.idx((i, j)).unwrap();
-                write!(f, "{:?}, ", self.data[idx])?;
+                write!(f, "{:?}, ", self[(i,j)])?;
             }
             write!(f, "\n\t")?;
         }
